@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>jme.email — You've got mail</title>
+  <meta name="description" content="Looks like you typed an email domain into your browser. To reach John Michael, email hello@jme.email.">
+  <meta name="theme-color" content="#0b0c0f">
+
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://www.jme.email/">
+  <meta property="og:title" content="jme.email — You've got mail">
+  <meta property="og:description" content="To reach John Michael, email hello@jme.email.">
+  <meta property="og:image" content="https://www.jme.email/media/og.png">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <link rel="icon" type="image/png" sizes="32x32" href="media/favicon-32.png">
+  <link rel="apple-touch-icon" href="media/apple-touch-icon.png">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;600&display=swap">
+
+  <link rel="preload" href="media/crt.webp" as="image">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="scene">
+    <div class="monitor">
+      <img class="bezel" src="media/crt.webp" width="1024" height="1024" alt="">
+
+      <div class="screen">
+        <div class="desktop">
+          <!-- Original sky-and-clouds wallpaper, generated with SVG noise -->
+          <svg class="wallpaper" viewBox="0 0 640 480" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+            <defs>
+              <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#1d4fa8"/>
+                <stop offset="0.55" stop-color="#4f8fdb"/>
+                <stop offset="1" stop-color="#9cc6f0"/>
+              </linearGradient>
+              <filter id="clouds" x="0" y="0" width="100%" height="100%">
+                <feTurbulence type="fractalNoise" baseFrequency="0.0045 0.011" numOctaves="5" seed="11"/>
+                <feColorMatrix type="matrix" values="0 0 0 0 1
+                                                     0 0 0 0 1
+                                                     0 0 0 0 1
+                                                     3.2 0 0 0 -1.45"/>
+                <feComponentTransfer>
+                  <feFuncA type="discrete" tableValues="0 0.3 0.55 0.8 0.95"/>
+                </feComponentTransfer>
+              </filter>
+            </defs>
+            <rect width="640" height="480" fill="url(#sky)"/>
+            <rect width="640" height="480" filter="url(#clouds)"/>
+          </svg>
+
+          <!-- Inbox window -->
+          <section class="window inbox" aria-labelledby="inbox-title">
+            <header class="titlebar">
+              <span class="titlebar-icon" aria-hidden="true"></span>
+              <h1 id="inbox-title" class="titlebar-text">Inbox - jme.email</h1>
+              <span class="titlebar-buttons" aria-hidden="true">
+                <span class="tb-btn tb-min"></span><span class="tb-btn tb-max"></span><span class="tb-btn tb-close"></span>
+              </span>
+            </header>
+            <nav class="menubar" aria-hidden="true">
+              <span><u>F</u>ile</span><span><u>E</u>dit</span><span><u>V</u>iew</span><span><u>M</u>ail</span><span><u>H</u>elp</span>
+            </nav>
+
+            <div class="inbox-body">
+              <img class="logo" src="media/logo.webp" width="900" height="828" alt="John Michael Online">
+
+              <button class="envelope-btn" type="button" aria-haspopup="dialog" aria-controls="message">
+                <span class="envelope" aria-hidden="true">
+                  <span class="env-back"></span>
+                  <span class="env-letter"></span>
+                  <span class="env-front"></span>
+                  <span class="env-flap"></span>
+                  <span class="env-badge">1</span>
+                </span>
+                <span class="envelope-label">You have 1 new message!</span>
+              </button>
+            </div>
+
+            <footer class="statusbar">
+              <span class="status-cell" id="status-text">1 unread message</span>
+              <span class="status-cell status-cell--right">Online</span>
+            </footer>
+          </section>
+
+          <!-- Message window -->
+          <section class="window message" id="message" role="dialog" aria-modal="true" aria-labelledby="message-title" hidden>
+            <header class="titlebar">
+              <span class="titlebar-icon" aria-hidden="true"></span>
+              <h2 id="message-title" class="titlebar-text">Whoops! - Message</h2>
+              <span class="titlebar-buttons">
+                <span class="tb-btn tb-min" aria-hidden="true"></span><span class="tb-btn tb-max" aria-hidden="true"></span><button class="tb-btn tb-close" type="button" data-close aria-label="Close message"></button>
+              </span>
+            </header>
+
+            <div class="toolbar">
+              <a class="btn" href="mailto:hello@jme.email">Reply</a>
+              <button class="btn" type="button" data-close>Close</button>
+            </div>
+
+            <dl class="headers">
+              <dt>From:</dt><dd>John Michael &lt;hello@jme.email&gt;</dd>
+              <dt>To:</dt><dd>You</dd>
+              <dt>Date:</dt><dd id="message-date">Mon, 27 Oct 1997 09:41:00 -0500</dd>
+              <dt>Subject:</dt><dd>Whoops!</dd>
+            </dl>
+
+            <div class="message-body" tabindex="0">
+              <p>Whoops!</p>
+              <p>It seems like you’ve accidentally navigated to www.jme.email in your browser. To contact John Michael, send an email to <a href="mailto:hello@jme.email">hello@jme.email</a> in your mail client or <a href="mailto:hello@jme.email">click here</a>.</p>
+              <p>For more fun and to learn about John Michael, visit <a href="https://www.jmeadicicco.com" target="_blank" rel="noopener">www.jmeadicicco.com</a></p>
+            </div>
+          </section>
+        </div>
+
+        <div class="crt-fx" aria-hidden="true"></div>
+      </div>
+    </div>
+  </main>
+
+  <noscript><style>.message[hidden]{display:flex !important}</style></noscript>
+  <script src="app.js" defer></script>
+</body>
+</html>

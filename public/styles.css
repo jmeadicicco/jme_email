@@ -1,0 +1,624 @@
+/* ------------------------------------------------------------------
+   Scale model
+   Everything inside the CRT screen is laid out on a virtual desktop
+   (--dw × --dh "pixels") and scaled with --u, so the whole UI resizes
+   with the screen like a real low-res display.
+   ------------------------------------------------------------------ */
+
+:root {
+  --room: #0b0c0f;
+  --face: #c0c0c0;
+  --hilite: #ffffff;
+  --light: #dfdfdf;
+  --shadow: #808080;
+  --dark: #0a0a0a;
+  --navy: #000080;
+  --title-end: #1084d0;
+  --ui-font: "Pixelify Sans", "MS Sans Serif", Tahoma, Geneva, sans-serif;
+  --mono-font: "Courier New", Courier, monospace;
+}
+
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+[hidden] { display: none !important; }
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+}
+
+body {
+  background: radial-gradient(ellipse at 50% 45%, #1d2027 0%, var(--room) 70%);
+  background-color: var(--room);
+  color: #000;
+  overflow: hidden;
+}
+
+/* ---------- Scene + monitor ---------- */
+
+.scene {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  height: 100svh;
+}
+
+.monitor {
+  /* crt.png has ~8% transparent margin top and bottom, so it can be a
+     little taller than the viewport without the plastic being cropped. */
+  --size: min(96vw, 112vh, 1100px);
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: var(--size);
+  height: var(--size);
+  transform: translate(-50%, -50%);
+}
+
+@supports (height: 1svh) {
+  .monitor { --size: min(96vw, 112svh, 1100px); }
+}
+
+.bezel {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 2vmin 4vmin rgba(0, 0, 0, 0.6));
+  user-select: none;
+  pointer-events: none;
+}
+
+/* Glass area of crt.png (measured on the 1024px source). */
+.screen {
+  --dw: 640;
+  --dh: 480;
+  --u: min(100cqw / var(--dw), 100cqh / var(--dh));
+  position: absolute;
+  left: 17.8%;
+  top: 16.9%;
+  width: 64%;
+  height: 48.3%;
+  border-radius: 3.2% / 4.3%;
+  overflow: hidden;
+  container-type: size;
+  background: #000;
+  box-shadow:
+    0 0 0 0.25vmin rgba(0, 0, 0, 0.35),
+    0 0 6vmin rgba(90, 150, 230, 0.12);
+}
+
+.desktop {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-family: var(--ui-font);
+  font-size: calc(11 * var(--u));
+  line-height: 1.25;
+  filter: saturate(1.08) contrast(1.04);
+}
+
+.wallpaper {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* ---------- CRT effects ---------- */
+
+.crt-fx {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background:
+    /* glass glare */
+    linear-gradient(155deg, rgba(255, 255, 255, 0.13) 0%, rgba(255, 255, 255, 0.04) 22%, transparent 38%),
+    /* scanlines */
+    repeating-linear-gradient(to bottom, rgba(0, 0, 0, 0.16) 0 1px, transparent 1px 3px),
+    /* tube vignette */
+    radial-gradient(ellipse 75% 70% at 50% 50%, transparent 55%, rgba(0, 0, 0, 0.5) 100%);
+  box-shadow:
+    inset 0 0 2.5vmin rgba(0, 0, 0, 0.65),
+    inset 0 0 0.6vmin rgba(0, 0, 0, 0.8);
+  animation: flicker 6s steps(1) infinite;
+}
+
+@keyframes flicker {
+  0%, 100% { opacity: 1; }
+  41% { opacity: 0.94; }
+  42% { opacity: 1; }
+  73% { opacity: 0.97; }
+  74% { opacity: 1; }
+}
+
+/* ---------- Win95-style chrome ---------- */
+
+.window {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  background: var(--face);
+  padding: calc(3 * var(--u));
+  box-shadow:
+    inset calc(-1 * var(--u)) calc(-1 * var(--u)) var(--dark),
+    inset var(--u) var(--u) var(--light),
+    inset calc(-2 * var(--u)) calc(-2 * var(--u)) var(--shadow),
+    inset calc(2 * var(--u)) calc(2 * var(--u)) var(--hilite),
+    calc(3 * var(--u)) calc(4 * var(--u)) 0 rgba(0, 0, 0, 0.25);
+}
+
+.titlebar {
+  display: flex;
+  align-items: center;
+  gap: calc(3 * var(--u));
+  height: calc(18 * var(--u));
+  padding: 0 calc(2 * var(--u)) 0 calc(3 * var(--u));
+  background: linear-gradient(90deg, var(--navy), var(--title-end));
+  color: #fff;
+  flex: none;
+}
+
+.titlebar-icon {
+  width: calc(12 * var(--u));
+  height: calc(9 * var(--u));
+  background: #fff;
+  clip-path: polygon(0 0, 50% 55%, 100% 0, 100% 100%, 0 100%);
+  outline: var(--u) solid #fff;
+  flex: none;
+}
+
+.titlebar-text {
+  flex: 1;
+  margin: 0;
+  font-size: calc(11 * var(--u));
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.titlebar-buttons {
+  display: flex;
+  gap: 0;
+  flex: none;
+}
+
+.tb-btn {
+  position: relative;
+  display: block;
+  width: calc(16 * var(--u));
+  height: calc(14 * var(--u));
+  padding: 0;
+  border: 0;
+  background: var(--face);
+  box-shadow:
+    inset calc(-1 * var(--u)) calc(-1 * var(--u)) var(--dark),
+    inset var(--u) var(--u) var(--hilite),
+    inset calc(-2 * var(--u)) calc(-2 * var(--u)) var(--shadow);
+  font: inherit;
+  cursor: default;
+}
+
+.tb-close { margin-left: calc(2 * var(--u)); }
+
+.tb-min::after {
+  content: "";
+  position: absolute;
+  left: calc(4 * var(--u));
+  bottom: calc(3 * var(--u));
+  width: calc(6 * var(--u));
+  height: calc(2 * var(--u));
+  background: #000;
+}
+
+.tb-max::after {
+  content: "";
+  position: absolute;
+  inset: calc(2 * var(--u)) calc(3 * var(--u)) calc(3 * var(--u));
+  border: var(--u) solid #000;
+  border-top-width: calc(2 * var(--u));
+}
+
+.tb-close::before,
+.tb-close::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: calc(8 * var(--u));
+  height: calc(2 * var(--u));
+  background: #000;
+  transform: translate(-55%, -60%) rotate(45deg);
+}
+
+.tb-close::after { transform: translate(-55%, -60%) rotate(-45deg); }
+
+button.tb-close { cursor: pointer; }
+
+button.tb-close:active {
+  box-shadow:
+    inset var(--u) var(--u) var(--dark),
+    inset calc(-1 * var(--u)) calc(-1 * var(--u)) var(--hilite),
+    inset calc(2 * var(--u)) calc(2 * var(--u)) var(--shadow);
+}
+
+.menubar {
+  display: flex;
+  gap: calc(12 * var(--u));
+  padding: calc(3 * var(--u)) calc(6 * var(--u));
+  flex: none;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: calc(64 * var(--u));
+  height: calc(22 * var(--u));
+  padding: 0 calc(10 * var(--u));
+  border: 0;
+  background: var(--face);
+  color: #000;
+  font: inherit;
+  text-decoration: none;
+  cursor: pointer;
+  box-shadow:
+    inset calc(-1 * var(--u)) calc(-1 * var(--u)) var(--dark),
+    inset var(--u) var(--u) var(--hilite),
+    inset calc(-2 * var(--u)) calc(-2 * var(--u)) var(--shadow),
+    inset calc(2 * var(--u)) calc(2 * var(--u)) var(--light);
+}
+
+.btn:active {
+  box-shadow:
+    inset var(--u) var(--u) var(--dark),
+    inset calc(-1 * var(--u)) calc(-1 * var(--u)) var(--hilite),
+    inset calc(2 * var(--u)) calc(2 * var(--u)) var(--shadow);
+}
+
+.btn:focus-visible,
+.envelope-btn:focus-visible,
+button.tb-close:focus-visible,
+.message-body:focus-visible,
+.message-body a:focus-visible {
+  outline: var(--u) dotted #000;
+  outline-offset: calc(-4 * var(--u));
+}
+
+.message-body a:focus-visible { outline-offset: var(--u); }
+
+.statusbar {
+  display: flex;
+  gap: calc(2 * var(--u));
+  margin-top: calc(2 * var(--u));
+  flex: none;
+}
+
+.status-cell {
+  flex: 1;
+  padding: calc(2 * var(--u)) calc(5 * var(--u));
+  font-size: calc(10 * var(--u));
+  box-shadow:
+    inset var(--u) var(--u) var(--shadow),
+    inset calc(-1 * var(--u)) calc(-1 * var(--u)) var(--hilite);
+}
+
+.status-cell--right {
+  flex: 0 0 calc(70 * var(--u));
+}
+
+/* ---------- Inbox window ---------- */
+
+.inbox {
+  width: calc(340 * var(--u));
+}
+
+.inbox-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(8 * var(--u));
+  padding: calc(14 * var(--u)) calc(12 * var(--u)) calc(10 * var(--u));
+  background: #fff;
+  box-shadow:
+    inset var(--u) var(--u) var(--shadow),
+    inset calc(-1 * var(--u)) calc(-1 * var(--u)) var(--hilite),
+    inset calc(2 * var(--u)) calc(2 * var(--u)) var(--dark),
+    inset calc(-2 * var(--u)) calc(-2 * var(--u)) var(--light);
+}
+
+.logo {
+  display: block;
+  width: calc(200 * var(--u));
+  height: auto;
+}
+
+/* ---------- Envelope ---------- */
+
+.envelope-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(7 * var(--u));
+  padding: calc(8 * var(--u)) calc(12 * var(--u));
+  border: 0;
+  background: none;
+  color: var(--navy);
+  font: inherit;
+  cursor: pointer;
+}
+
+.envelope {
+  --ew: calc(80 * var(--u));
+  --eh: calc(52 * var(--u));
+  --ink: #1a1a2e;
+  position: relative;
+  display: block;
+  width: var(--ew);
+  height: var(--eh);
+  perspective: calc(200 * var(--u));
+  animation: hop 1.4s steps(1) infinite;
+}
+
+.env-back,
+.env-front,
+.env-flap,
+.env-letter {
+  position: absolute;
+  display: block;
+}
+
+.env-back {
+  inset: 0;
+  background: #e9dfc4;
+  box-shadow: 0 0 0 var(--u) var(--ink), calc(3 * var(--u)) calc(3 * var(--u)) 0 rgba(0, 0, 0, 0.25);
+}
+
+.env-letter {
+  left: 10%;
+  right: 10%;
+  top: 8%;
+  height: 84%;
+  background:
+    repeating-linear-gradient(to bottom, transparent 0 calc(5 * var(--u)), #9db4d9 calc(5 * var(--u)) calc(6 * var(--u))) calc(6 * var(--u)) calc(10 * var(--u)) / calc(100% - 12 * var(--u)) 60% no-repeat,
+    #fff;
+  box-shadow: 0 0 0 var(--u) var(--ink);
+  transition: transform 0.45s steps(5) 0.3s;
+}
+
+.env-front {
+  inset: 0;
+  background: #f6eed6;
+  clip-path: polygon(0 0, 50% 58%, 100% 0, 100% 100%, 0 100%);
+  /* fold lines from the bottom corners toward the centre */
+  background-image:
+    linear-gradient(to bottom right, transparent calc(50% - var(--u) / 2), rgba(26, 26, 46, 0.45) calc(50% - var(--u) / 2) calc(50% + var(--u) / 2), transparent 0),
+    linear-gradient(to bottom left, transparent calc(50% - var(--u) / 2), rgba(26, 26, 46, 0.45) calc(50% - var(--u) / 2) calc(50% + var(--u) / 2), transparent 0);
+  background-size: 50% 48%;
+  background-position: left bottom, right bottom;
+  background-repeat: no-repeat;
+}
+
+.env-flap {
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 60%;
+  background: #ddd0ad;
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+  transform-origin: top center;
+  transition: transform 0.3s steps(4), z-index 0s 0.15s;
+  z-index: 2;
+}
+
+.env-flap::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(to bottom right, transparent calc(50% - var(--u)), var(--ink) calc(50% - var(--u)) 50%, transparent 0) right / 50% 100% no-repeat,
+    linear-gradient(to bottom left, transparent calc(50% - var(--u)), var(--ink) calc(50% - var(--u)) 50%, transparent 0) left / 50% 100% no-repeat;
+}
+
+.env-badge {
+  position: absolute;
+  z-index: 3;
+  top: calc(-9 * var(--u));
+  right: calc(-10 * var(--u));
+  display: grid;
+  place-items: center;
+  width: calc(19 * var(--u));
+  height: calc(19 * var(--u));
+  border-radius: 50%;
+  background: #e0201b;
+  color: #fff;
+  font-size: calc(11 * var(--u));
+  font-weight: 600;
+  line-height: 1;
+  box-shadow: 0 0 0 var(--u) #fff, 0 0 0 calc(2 * var(--u)) var(--ink);
+  animation: blink 1s steps(1) infinite;
+}
+
+.envelope-label {
+  font-size: calc(12 * var(--u));
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: calc(2 * var(--u));
+}
+
+.envelope-btn:hover .envelope-label { color: #0000ee; }
+
+@keyframes hop {
+  0%, 100% { transform: translateY(0); }
+  10% { transform: translateY(calc(-4 * var(--u))); }
+  20% { transform: translateY(calc(-6 * var(--u))) rotate(-3deg); }
+  30% { transform: translateY(calc(-4 * var(--u))) rotate(3deg); }
+  40% { transform: translateY(0); }
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.25; }
+}
+
+/* Opening sequence */
+.is-opening .envelope,
+.is-open .envelope { animation: none; }
+
+.is-opening .env-flap,
+.is-open .env-flap {
+  transform: rotateX(180deg);
+  z-index: 0;
+}
+
+.is-opening .env-letter,
+.is-open .env-letter { transform: translateY(-55%); }
+
+.is-opening .env-badge,
+.is-read .env-badge { display: none; }
+
+.is-read .envelope { animation: none; }
+
+.is-read .envelope-label { color: #333; }
+
+/* ---------- Message window ---------- */
+
+.message {
+  position: absolute;
+  z-index: 2;
+  width: min(calc(520 * var(--u)), calc(100% - 20 * var(--u)));
+  max-height: calc(100% - 24 * var(--u));
+  transform-origin: 50% 70%;
+}
+
+.message.is-popping { animation: pop 0.28s steps(4); }
+
+@keyframes pop {
+  from { transform: scale(0.15); opacity: 0.4; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.toolbar {
+  display: flex;
+  gap: calc(4 * var(--u));
+  padding: calc(4 * var(--u)) calc(3 * var(--u)) calc(5 * var(--u));
+  border-bottom: var(--u) solid var(--shadow);
+  box-shadow: 0 var(--u) 0 var(--hilite);
+  flex: none;
+}
+
+.headers {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: calc(3 * var(--u)) calc(8 * var(--u));
+  margin: calc(6 * var(--u)) 0 calc(6 * var(--u));
+  padding: 0 calc(5 * var(--u));
+  flex: none;
+}
+
+.headers dt {
+  font-weight: 600;
+  text-align: right;
+}
+
+.headers dd {
+  margin: 0;
+  padding: var(--u) calc(4 * var(--u));
+  background: #fff;
+  font-family: var(--mono-font);
+  font-size: calc(11 * var(--u));
+  box-shadow:
+    inset var(--u) var(--u) var(--shadow),
+    inset calc(-1 * var(--u)) calc(-1 * var(--u)) var(--hilite);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.message-body {
+  flex: 1 1 auto;
+  min-height: calc(80 * var(--u));
+  overflow: auto;
+  padding: calc(10 * var(--u)) calc(12 * var(--u));
+  background: #fff;
+  font-family: var(--mono-font);
+  font-size: calc(13 * var(--u));
+  line-height: 1.45;
+  box-shadow:
+    inset var(--u) var(--u) var(--shadow),
+    inset calc(-1 * var(--u)) calc(-1 * var(--u)) var(--hilite),
+    inset calc(2 * var(--u)) calc(2 * var(--u)) var(--dark),
+    inset calc(-2 * var(--u)) calc(-2 * var(--u)) var(--light);
+}
+
+.message-body p { margin: 0 0 0.9em; }
+
+.message-body p:first-child { font-weight: 700; }
+
+.message-body p:last-child { margin-bottom: 0; }
+
+.message-body a { color: #0000ee; }
+
+.message-body a:visited { color: #551a8b; }
+
+/* ---------- Phones / small viewports: zoom into the tube ---------- */
+
+@media (max-width: 719px), (max-height: 600px) {
+  .monitor {
+    --size: auto;
+    width: 100vw;
+    height: 100vh;
+    height: 100svh;
+  }
+
+  .bezel { display: none; }
+
+  .screen {
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .crt-fx {
+    box-shadow: inset 0 0 8vmin rgba(0, 0, 0, 0.55);
+  }
+}
+
+@media (max-width: 719px) and (orientation: portrait) {
+  .screen {
+    --dw: 380;
+    --dh: 640;
+  }
+
+  .inbox { width: calc(340 * var(--u)); }
+
+  .logo { width: calc(230 * var(--u)); }
+
+  .message {
+    width: calc(100% - 16 * var(--u));
+    max-height: calc(100% - 16 * var(--u));
+  }
+
+  .menubar { gap: calc(9 * var(--u)); }
+}
+
+/* ---------- Motion preferences ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .crt-fx,
+  .envelope,
+  .env-badge,
+  .message.is-popping { animation: none; }
+
+  .env-flap,
+  .env-letter { transition: none; }
+}
